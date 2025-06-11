@@ -1,33 +1,61 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import {useState, useEffect} from 'react'
 import './App.css'
 
+
 function App() {
-  const [count, setCount] = useState(0)
+  //Logica de programación (JavaScript).
+  const [dogs, setDogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  //useEffect para manejar efectos secundarios, como la carga de datos.
+  //Carga de datos desde una API
+  useEffect(() => {
+      //Funcion asíncrona para obtener datos de la API
+      //Se utiliza fetch para realizar la petición HTTP
+      //Se maneja la respuesta y se actualiza el estado del componente(try/catch para manejar errores)
+      const getDogs = async () => {
+        try {
+          const response = await fetch('https://dogapi.dog/api/v2/breeds');
+          if (!response.ok) {throw new Error(`Error: ${response.status} ${response.statusText}`);}
+          const data = await response.json();
+          //Actualizamos el estado con los datos obtenidos
+          setDogs(data.data);
+          //Ver datos en la consola
+          console.log(data);
+          
+        } catch (error) {
+          setError(error);
+        }
+        finally {
+          setLoading(false);
+        }
+      }
+
+      getDogs();
+
+  },[]);
+
+  //Renderizado condicional basado en el estado de la app 
+  if(loading){return <p>Loading...</p>;}
+  if(error){return <p>Error: {error.message}</p>;}
 
   return (
+    //Estructura HTML de la aplicación
+    //Utilizamos fragmentos para no crear un nodo extra en el DOM
+
+    //1- Usar el useState para manejar el estado del componente
+    
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+        <div className="card-container">
+          {dogs.map((race) => (
+            <div className="dogs-card" key={race.id}>
+              <h2>{race.attributes.name}</h2>
+              <h3>{race.attributes.type}</h3>
+              <p><strong>Temperament:</strong> {race.temperament ?? "Not Specified"}</p>
+              <p><strong>hypoallergenic:</strong> {race.hypoallergenic ? "True" : "False"}</p>
+            </div>
+          ))}
+        </div>
     </>
   )
 }
